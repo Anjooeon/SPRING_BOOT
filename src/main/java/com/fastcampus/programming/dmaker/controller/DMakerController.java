@@ -34,14 +34,14 @@ public class DMakerController {
         return Arrays.asList("snow", "Elsa", "Olaf");
     }
 
-    @PostMapping("/create-developers")   //validation이 작동하게 하려면 request에 valid라는 어노테이션이 달려야함
-    public List<String> createDevelopers(@Valid @RequestBody CreateDeveloper.Request request) {
+    @PostMapping("/create-developer")   //validation이 작동하게 하려면 request에 valid라는 어노테이션이 달려야함
+    public CreateDeveloper.Response createDevelopers(@Valid @RequestBody CreateDeveloper.Request request) {
         //GET /developers HTTP/1.1
         //log.info("GET /create-developers HTTP/1.1");
         log.info("request : {}", request);
 
-        dMakerService.createDeveloper(request);
+        return dMakerService.createDeveloper(request);
 
-        return Collections.singletonList("Olaf"); //단일 객체를 가지고 있는 리스트를 리턴할때는 이렇게 하는게 더 좋다.
+        //return Collections.singletonList("Olaf"); //단일 객체를 가지고 있는 리스트를 리턴할때는 이렇게 하는게 더 좋다.
     }
 }

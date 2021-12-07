@@ -1,5 +1,6 @@
 package com.fastcampus.programming.dmaker.dto;
 
+import com.fastcampus.programming.dmaker.entity.Developer;
 import com.fastcampus.programming.dmaker.type.DeveloperLevel;
 import com.fastcampus.programming.dmaker.type.DeveloperSkillType;
 import lombok.*;
@@ -24,7 +25,7 @@ public class CreateDeveloper {
         @NotNull
         @Min(0)
         @Max(20)
-        private Integer exprienceYears;
+        private Integer experienceYears;
 
         @NotNull
         @Size(min=3, max=50, message="memberId size must 3~50")
@@ -45,5 +46,14 @@ public class CreateDeveloper {
         private DeveloperSkillType developerSkillType;
         private Integer experienceYears;
         private String memberId;
+
+        public static Response fromEntity(Developer developer){
+            return Response.builder()
+                    .developerLevel(developer.getDeveloperLevel())
+                    .developerSkillType(developer.getDeveloperSkillType())
+                    .experienceYears(developer.getExperienceYears())
+                    .memberId(developer.getMemberId())
+                    .build();
+        }
     }
 }

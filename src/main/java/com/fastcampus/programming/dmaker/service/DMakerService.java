@@ -2,6 +2,8 @@ package com.fastcampus.programming.dmaker.service;
 
 import com.fastcampus.programming.dmaker.dto.CreateDeveloper;
 import com.fastcampus.programming.dmaker.entity.Developer;
+import com.fastcampus.programming.dmaker.exception.DMakerErrorCode;
+import com.fastcampus.programming.dmaker.exception.DMakerException;
 import com.fastcampus.programming.dmaker.repository.DeveloperRepository;
 import com.fastcampus.programming.dmaker.type.DeveloperLevel;
 import com.fastcampus.programming.dmaker.type.DeveloperSkillType;
@@ -13,6 +15,11 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.transaction.Transactional;
+
+import java.util.Optional;
+
+import static com.fastcampus.programming.dmaker.exception.DMakerErrorCode.DUPLICATED_MEMBER_ID;
+import static com.fastcampus.programming.dmaker.exception.DMakerErrorCode.LEVEL_EXPERENC_YEAR_NOT_MATCHED;
 
 @Service
 @RequiredArgsConstructor
@@ -27,7 +34,8 @@ public class DMakerService {
     private final EntityManager em;
 
     @Transactional
-    public void createDeveloper(CreateDeveloper.Request request){
+    public CreateDeveloper.Response createDeveloper(CreateDeveloper.Request request){
+        validateCreateDeveloperRequest(request);
         /*transactional annotaion으로 인해 해당 부분이 필요없어짐*/
        /* EntityTransaction transaction = em.getTransaction();
         try{
@@ -35,14 +43,17 @@ public class DMakerService {
 
             /*business logic start*/
             Developer developer = Developer.builder()
-                    .developerLevel(DeveloperLevel.JUNGNIOR)
-                    .developerSkillType(DeveloperSkillType.FRONT_END)
-                    .experienceYears(2)
-                    .name("Olaf")
-                    .age(5)
+                    .developerLevel(request.getDeveloperLevel())
+                    .developerSkillType(request.getDeveloperSkillType())
+                    .experienceYears(request.getExperienceYears())
+                    .name(request.getName())
+                    .age(request.getAge())
+                    .memberId(request.getMemberId())
                     .build();
 
             developerRepository.save(developer);
+
+            return CreateDeveloper.Response.fromEntity(developer);
            // developerRepository.delete(developer);
             /*business logic end*/
 
@@ -50,6 +61,33 @@ public class DMakerService {
         }catch (Exception e){
             transaction.rollback();
         }*/
+
+    }
+
+    private void validateCreateDeveloperRequest(CreateDeveloper.Request request){
+        //business validation
+        DeveloperLevel developerLevel = request.getDeveloperLevel();
+        Integer experienceYears = request.getExperienceYears();
+        if(developerLevel == DeveloperLevel.SENIOR
+            && experienceYears < 10){
+            throw  new DMakerException(LEVEL_EXPERENC_YEAR_NOT_MATCHED); //static import 활용
+        }
+
+        if(developerLevel == DeveloperLevel.JUNGNIOR
+            && experienceYears < 4 || experienceYears > 10){
+            throw  new DMakerException(LEVEL_EXPERENC_YEAR_NOT_MATCHED);
+        }
+
+        if(developerLevel == DeveloperLevel.JUNIOR
+                && experienceYears > 4 ){
+            throw  new DMakerException(LEVEL_EXPERENC_YEAR_NOT_MATCHED);
+        }
+
+       developerRepository.findByMemberId(request.getMemberId())
+               .ifPresent((developer -> {
+                   throw new DMakerException(DUPLICATED_MEMBER_ID);
+               }));
+
 
     }
 }
