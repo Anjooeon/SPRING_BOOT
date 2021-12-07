@@ -1,5 +1,6 @@
 package com.fastcampus.programming.dmaker.service;
 
+import com.fastcampus.programming.dmaker.dto.CreateDeveloper;
 import com.fastcampus.programming.dmaker.entity.Developer;
 import com.fastcampus.programming.dmaker.repository.DeveloperRepository;
 import com.fastcampus.programming.dmaker.type.DeveloperLevel;
@@ -26,7 +27,7 @@ public class DMakerService {
     private final EntityManager em;
 
     @Transactional
-    public void createDeveloper(){
+    public void createDeveloper(CreateDeveloper.Request request){
         /*transactional annotaion으로 인해 해당 부분이 필요없어짐*/
        /* EntityTransaction transaction = em.getTransaction();
         try{
@@ -42,7 +43,7 @@ public class DMakerService {
                     .build();
 
             developerRepository.save(developer);
-            developerRepository.delete(developer);
+           // developerRepository.delete(developer);
             /*business logic end*/
 
           /*  transaction.commit();
