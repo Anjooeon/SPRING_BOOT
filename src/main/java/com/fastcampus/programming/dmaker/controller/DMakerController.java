@@ -1,15 +1,14 @@
 package com.fastcampus.programming.dmaker.controller;
 
 import com.fastcampus.programming.dmaker.dto.CreateDeveloper;
+import com.fastcampus.programming.dmaker.dto.DeveloperDtailDto;
 import com.fastcampus.programming.dmaker.dto.DeveloperDto;
+import com.fastcampus.programming.dmaker.dto.EditDeveloper;
 import com.fastcampus.programming.dmaker.entity.Developer;
 import com.fastcampus.programming.dmaker.service.DMakerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.Arrays;
@@ -32,7 +31,14 @@ public class DMakerController {
     public List<DeveloperDto> getAllDevelopers() {
         //GET /developers HTTP/1.1
         log.info("GET /developers HTTP/1.1");
-        return dMakerService.getAllDevelopers();
+        return dMakerService.getAllEmployedDevelopers();
+    }
+
+    @GetMapping("/developer/{memberId}")
+    public DeveloperDtailDto getAllDeveloperDetail(@PathVariable String memberId) {
+        //GET /developers HTTP/1.1
+        log.info("GET /developers HTTP/1.1");
+        return dMakerService.getDeveloperDetail(memberId);
     }
 
     @PostMapping("/create-developer")   //validation이 작동하게 하려면 request에 valid라는 어노테이션이 달려야함
@@ -44,5 +50,21 @@ public class DMakerController {
         return dMakerService.createDeveloper(request);
 
         //return Collections.singletonList("Olaf"); //단일 객체를 가지고 있는 리스트를 리턴할때는 이렇게 하는게 더 좋다.
+    }
+
+    //PUT은 모든 데이터수정 , PACH는 특정 데이터를 수정
+    @PutMapping("/developer/{memberId}")
+    public DeveloperDtailDto editDeveloper(
+            @PathVariable String memberId,
+           @Valid  @RequestBody EditDeveloper.Request reqest
+            ) {
+        //GET /developers HTTP/1.1
+        log.info("GET /developers HTTP/1.1");
+        return dMakerService.editDeveloper(memberId, reqest);
+    }
+
+    @DeleteMapping("/developer/{memberId}")
+    public DeveloperDtailDto deleteDeveloper(@PathVariable String memberId){
+        return dMakerService.deleteDeveloper(memberId);
     }
 }
