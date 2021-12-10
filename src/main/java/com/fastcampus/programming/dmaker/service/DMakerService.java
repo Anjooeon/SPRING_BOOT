@@ -1,10 +1,7 @@
 package com.fastcampus.programming.dmaker.service;
 
 import com.fastcampus.programming.dmaker.code.StatusCode;
-import com.fastcampus.programming.dmaker.dto.CreateDeveloper;
-import com.fastcampus.programming.dmaker.dto.DeveloperDtailDto;
-import com.fastcampus.programming.dmaker.dto.DeveloperDto;
-import com.fastcampus.programming.dmaker.dto.EditDeveloper;
+import com.fastcampus.programming.dmaker.dto.*;
 import com.fastcampus.programming.dmaker.entity.Developer;
 import com.fastcampus.programming.dmaker.entity.RetiredDeveloper;
 import com.fastcampus.programming.dmaker.exception.DMakerErrorCode;
@@ -14,6 +11,7 @@ import com.fastcampus.programming.dmaker.repository.RetiredDeveloperRepository;
 import com.fastcampus.programming.dmaker.type.DeveloperLevel;
 import com.fastcampus.programming.dmaker.type.DeveloperSkillType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.stereotype.Service;
@@ -28,6 +26,7 @@ import java.util.stream.Collectors;
 
 import static com.fastcampus.programming.dmaker.exception.DMakerErrorCode.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @EnableJpaAuditing
@@ -74,14 +73,13 @@ public class DMakerService {
     }
 
     private void validateCreateDeveloperRequest(CreateDeveloper.Request request){
+
         //business validation
-        validateDeveloperLevel(request.getDeveloperLevel(), request.getExperienceYears());
+       validateDeveloperLevel(request.getDeveloperLevel(), request.getExperienceYears());
        developerRepository.findByMemberId(request.getMemberId())
                .ifPresent((developer -> {
                    throw new DMakerException(DUPLICATED_MEMBER_ID);
                }));
-
-
     }
 
     public List<DeveloperDto> getAllEmployedDevelopers() {

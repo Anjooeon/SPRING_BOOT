@@ -1,15 +1,15 @@
 package com.fastcampus.programming.dmaker.controller;
 
-import com.fastcampus.programming.dmaker.dto.CreateDeveloper;
-import com.fastcampus.programming.dmaker.dto.DeveloperDtailDto;
-import com.fastcampus.programming.dmaker.dto.DeveloperDto;
-import com.fastcampus.programming.dmaker.dto.EditDeveloper;
+import com.fastcampus.programming.dmaker.dto.*;
 import com.fastcampus.programming.dmaker.entity.Developer;
+import com.fastcampus.programming.dmaker.exception.DMakerException;
 import com.fastcampus.programming.dmaker.service.DMakerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Arrays;
 import java.util.Collections;
@@ -47,6 +47,9 @@ public class DMakerController {
         //log.info("GET /create-developers HTTP/1.1");
         log.info("request : {}", request);
 
+        //Controller의 역할은 Presentation Layer로 요청을 받고 응답을 주는 역할만을 수행해야한다.
+        //이렇게 비지니스 로직이 Controller에 있으면 좋지않다.
+
         return dMakerService.createDeveloper(request);
 
         //return Collections.singletonList("Olaf"); //단일 객체를 가지고 있는 리스트를 리턴할때는 이렇게 하는게 더 좋다.
@@ -67,4 +70,6 @@ public class DMakerController {
     public DeveloperDtailDto deleteDeveloper(@PathVariable String memberId){
         return dMakerService.deleteDeveloper(memberId);
     }
+
+
 }
