@@ -1,6 +1,7 @@
 package com.fastcampus.programming.dmaker.entity;
 
 import com.fastcampus.programming.dmaker.code.StatusCode;
+import com.fastcampus.programming.dmaker.dto.CreateDeveloper;
 import com.fastcampus.programming.dmaker.type.DeveloperLevel;
 import com.fastcampus.programming.dmaker.type.DeveloperSkillType;
 import lombok.*;
@@ -41,4 +42,5 @@ public class Developer {
     private LocalDateTime createdAt;
     @LastModifiedDate/*자동으로 업데이트 시점을 저장*/
     private LocalDateTime updatedAt;
+
 }

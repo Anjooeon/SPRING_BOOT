@@ -23,7 +23,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.util.List;
 import java.util.Optional;
 
+import static com.fastcampus.programming.dmaker.constant.DMakerConstant.MAX_JUNIOR_EXPERIENCE_YEARS;
+import static com.fastcampus.programming.dmaker.constant.DMakerConstant.MIN_SENIOR_EXPERIENCE_YEARS;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
@@ -58,14 +61,20 @@ class DMakerServiceTest {
                         .age(12)
                         .build();
 
-    private final CreateDeveloper.Request defaultRequest = CreateDeveloper.Request.builder()
-                .developerLevel(DeveloperLevel.SENIOR)
-                .developerSkillType(DeveloperSkillType.FRONT_END)
-                .experienceYears(12)
-                .memberId("memberId")
-                .name("name")
-                .age(32)
-                .build();
+    private CreateDeveloper.Request getCreateRequest (
+            DeveloperLevel developerLevel,
+            DeveloperSkillType developerSkillType,
+            Integer experienceYears
+    ){
+       return CreateDeveloper.Request.builder()
+               .developerLevel(developerLevel)
+               .developerSkillType(developerSkillType)
+               .experienceYears(experienceYears)
+               .memberId("memberId")
+               .name("name")
+               .age(32)
+               .build();
+    }
 
 
     @Test
@@ -97,11 +106,14 @@ class DMakerServiceTest {
 
         given(developerRepository.findByMemberId(anyString()))
                 .willReturn(Optional.empty());
+
+        given(developerRepository.save(any()))
+                .willReturn(defaultDeveloper);
         ArgumentCaptor<Developer> captor
                 =ArgumentCaptor.forClass(Developer.class);
 
         //when
-        CreateDeveloper.Response developer = dMakerService.createDeveloper(defaultRequest);
+        CreateDeveloper.Response developer = dMakerService.createDeveloper(getCreateRequest(DeveloperLevel.SENIOR, DeveloperSkillType.FRONT_END, MIN_SENIOR_EXPERIENCE_YEARS+1));
 
         //then
         verify(developerRepository, times(1))
@@ -113,15 +125,28 @@ class DMakerServiceTest {
 
     }
     @Test
+    void createDeveloperTest_fail_unmatched_level(){
+        DMakerException dMakerException= assertThrows(DMakerException.class, () -> dMakerService.createDeveloper(getCreateRequest(DeveloperLevel.SENIOR, DeveloperSkillType.FRONT_END, MIN_SENIOR_EXPERIENCE_YEARS-1)));
+        assertEquals(DMakerErrorCode.LEVEL_EXPERENC_YEAR_NOT_MATCHED, dMakerException.getDMakerErrorCode());
+
+        dMakerException= assertThrows(DMakerException.class, () -> dMakerService.createDeveloper(getCreateRequest(DeveloperLevel.JUNIOR, DeveloperSkillType.FRONT_END, MAX_JUNIOR_EXPERIENCE_YEARS+1)));
+        assertEquals(DMakerErrorCode.LEVEL_EXPERENC_YEAR_NOT_MATCHED, dMakerException.getDMakerErrorCode());
+
+        dMakerException= assertThrows(DMakerException.class, () -> dMakerService.createDeveloper(getCreateRequest(DeveloperLevel.JUNGNIOR, DeveloperSkillType.FRONT_END, MAX_JUNIOR_EXPERIENCE_YEARS-1)));
+        assertEquals(DMakerErrorCode.LEVEL_EXPERENC_YEAR_NOT_MATCHED, dMakerException.getDMakerErrorCode());
+
+    }
+    @Test
     void createDeveloperTest_failed_with_duplicated(){
         //given
         given(developerRepository.findByMemberId(anyString()))
                 .willReturn(Optional.of(defaultDeveloper));
+
         //when
         //CreateDeveloper.Response developer = dMakerService.createDeveloper(defaultRequest);
 
         //then
-        DMakerException dMakerException= assertThrows(DMakerException.class, () -> dMakerService.createDeveloper(defaultRequest));
+        DMakerException dMakerException= assertThrows(DMakerException.class, () -> dMakerService.createDeveloper(getCreateRequest(DeveloperLevel.SENIOR, DeveloperSkillType.FRONT_END, MIN_SENIOR_EXPERIENCE_YEARS+1)));
         assertEquals(DMakerErrorCode.DUPLICATED_MEMBER_ID, dMakerException.getDMakerErrorCode());
     }
 }

@@ -35,14 +35,14 @@ public class DMakerController {
     }
 
     @GetMapping("/developer/{memberId}")
-    public DeveloperDtailDto getAllDeveloperDetail(@PathVariable String memberId) {
+    public DeveloperDtailDto getAllDeveloperDetail(@PathVariable final String memberId) {
         //GET /developers HTTP/1.1
         log.info("GET /developers HTTP/1.1");
         return dMakerService.getDeveloperDetail(memberId);
     }
 
     @PostMapping("/create-developer")   //validation이 작동하게 하려면 request에 valid라는 어노테이션이 달려야함
-    public CreateDeveloper.Response createDevelopers(@Valid @RequestBody CreateDeveloper.Request request) {
+    public CreateDeveloper.Response createDevelopers(@Valid @RequestBody final CreateDeveloper.Request request) {
         //GET /developers HTTP/1.1
         //log.info("GET /create-developers HTTP/1.1");
         log.info("request : {}", request);
@@ -58,7 +58,7 @@ public class DMakerController {
     //PUT은 모든 데이터수정 , PACH는 특정 데이터를 수정
     @PutMapping("/developer/{memberId}")
     public DeveloperDtailDto editDeveloper(
-            @PathVariable String memberId,
+            @PathVariable final String  memberId,
            @Valid  @RequestBody EditDeveloper.Request reqest
             ) {
         //GET /developers HTTP/1.1
@@ -67,7 +67,7 @@ public class DMakerController {
     }
 
     @DeleteMapping("/developer/{memberId}")
-    public DeveloperDtailDto deleteDeveloper(@PathVariable String memberId){
+    public DeveloperDtailDto deleteDeveloper(@PathVariable final String memberId){
         return dMakerService.deleteDeveloper(memberId);
     }
 

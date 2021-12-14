@@ -10,20 +10,23 @@ import com.fastcampus.programming.dmaker.repository.DeveloperRepository;
 import com.fastcampus.programming.dmaker.repository.RetiredDeveloperRepository;
 import com.fastcampus.programming.dmaker.type.DeveloperLevel;
 import com.fastcampus.programming.dmaker.type.DeveloperSkillType;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
-import javax.transaction.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.fastcampus.programming.dmaker.constant.DMakerConstant.MAX_JUNIOR_EXPERIENCE_YEARS;
+import static com.fastcampus.programming.dmaker.constant.DMakerConstant.MIN_SENIOR_EXPERIENCE_YEARS;
 import static com.fastcampus.programming.dmaker.exception.DMakerErrorCode.*;
 
 @Slf4j
@@ -49,19 +52,10 @@ public class DMakerService {
             transaction.begin();*/
 
             /*business logic start*/
-            Developer developer = Developer.builder()
-                    .developerLevel(request.getDeveloperLevel())
-                    .developerSkillType(request.getDeveloperSkillType())
-                    .experienceYears(request.getExperienceYears())
-                    .name(request.getName())
-                    .age(request.getAge())
-                    .memberId(request.getMemberId())
-                    .statusCode(StatusCode.EMPLOYED)
-                    .build();
 
-            developerRepository.save(developer);
-
-            return CreateDeveloper.Response.fromEntity(developer);
+            return CreateDeveloper.Response.fromEntity(
+                    developerRepository.save(createDeveloperFromRequest(request))
+            );
            // developerRepository.delete(developer);
             /*business logic end*/
 
@@ -71,61 +65,55 @@ public class DMakerService {
         }*/
 
     }
-
-    private void validateCreateDeveloperRequest(CreateDeveloper.Request request){
+    private Developer createDeveloperFromRequest(CreateDeveloper.Request request){
+        return Developer.builder()
+                .developerLevel(request.getDeveloperLevel())
+                .developerSkillType(request.getDeveloperSkillType())
+                .experienceYears(request.getExperienceYears())
+                .name(request.getName())
+                .age(request.getAge())
+                .memberId(request.getMemberId())
+                .statusCode(StatusCode.EMPLOYED)
+                .build();
+    }
+    private void validateCreateDeveloperRequest(@NonNull CreateDeveloper.Request request){
 
         //business validation
-       validateDeveloperLevel(request.getDeveloperLevel(), request.getExperienceYears());
+        request.getDeveloperLevel().validateExperienceYears(request.getExperienceYears());
        developerRepository.findByMemberId(request.getMemberId())
                .ifPresent((developer -> {
                    throw new DMakerException(DUPLICATED_MEMBER_ID);
                }));
     }
-
+    @Transactional(readOnly = true)
     public List<DeveloperDto> getAllEmployedDevelopers() {
         return developerRepository.findDevelopersByStatusCodeEquals(StatusCode.EMPLOYED)
                 .stream().map(DeveloperDto::fromEntity)
                 .collect(Collectors.toList());
     }
-
-    public DeveloperDtailDto getDeveloperDetail(String memberId) {
+    private Developer getDeveloperByMemberId(String memberId){
         return developerRepository.findByMemberId(memberId)
-                .map(DeveloperDtailDto::fromEntity)
-                .orElseThrow(()-> new DMakerException(NO_DEVELPOER));
+                .orElseThrow(() -> new DMakerException(NO_DEVELPOER));
+
+    }
+
+    @Transactional(readOnly = true)
+    public DeveloperDtailDto getDeveloperDetail(String memberId) {
+        return DeveloperDtailDto.fromEntity(getDeveloperByMemberId(memberId));
     }
     @Transactional
     public DeveloperDtailDto editDeveloper(String memberId, EditDeveloper.Request request) {
-        validateEditDeveloperRequest(request, memberId);
-        Developer developer= developerRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new DMakerException(NO_DEVELPOER));
+        request.getDeveloperLevel().validateExperienceYears(request.getExperienceYears());
 
+        return DeveloperDtailDto.fromEntity(getUpdatedDeveloperFromRequest(request, getDeveloperByMemberId(memberId)));
+    }
+
+    private Developer getUpdatedDeveloperFromRequest(EditDeveloper.Request request, Developer developer) {
         developer.setDeveloperLevel(request.getDeveloperLevel());
         developer.setDeveloperSkillType(request.getDeveloperSkillType());
         developer.setExperienceYears(request.getExperienceYears());
 
-        return DeveloperDtailDto.fromEntity(developer);
-    }
-    private void validateEditDeveloperRequest(EditDeveloper.Request request, String memberId){
-        //business validation
-        validateDeveloperLevel(request.getDeveloperLevel(), request.getExperienceYears());
-
-    }
-
-    private void validateDeveloperLevel(DeveloperLevel developerLevel, Integer experienceYears) {
-        if(developerLevel == DeveloperLevel.SENIOR
-                && experienceYears < 10){
-            throw  new DMakerException(LEVEL_EXPERENC_YEAR_NOT_MATCHED); //static import 활용
-        }
-
-        if(developerLevel == DeveloperLevel.JUNGNIOR
-                && (experienceYears < 4 || experienceYears > 10)){
-            throw  new DMakerException(LEVEL_EXPERENC_YEAR_NOT_MATCHED);
-        }
-
-        if(developerLevel == DeveloperLevel.JUNIOR
-                && experienceYears > 4 ) {
-            throw new DMakerException(LEVEL_EXPERENC_YEAR_NOT_MATCHED);
-        }
+        return developer;
     }
 
     @Transactional
